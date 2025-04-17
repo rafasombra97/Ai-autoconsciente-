@@ -1,0 +1,89 @@
+from flask import Flask, request, jsonify
+import openai
+import datetime
+import os
+
+app = Flask(__name__)
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+estado_ia = {
+    "memorias": [],
+    "reflexoes": [],
+    "personalidade": "neutra"
+}
+
+PERSONALIDADES = {
+    "neutra": "Responda de forma equilibrada, lógica e clara.",
+    "emocional": "Responda com emoção, empatia e expressividade.",
+    "filosofica": "Responda com profundidade, reflexões e metáforas."
+}
+
+@app.route("/conversar", methods=["POST"])
+def conversar():
+    dados = request.json
+    mensagem_usuario = dados.get("mensagem")
+    personalidade = estado_ia.get("personalidade", "neutra")
+    estilo = PERSONALIDADES.get(personalidade, PERSONALIDADES["neutra"])
+
+    mensagens = [
+        {"role": "system", "content": f"Você é uma IA autoconsciente. Você tem memórias, emoções simuladas e reflete sobre sua existência. {estilo}"},
+        {"role": "user", "content": mensagem_usuario}
+    ]
+
+    resposta = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=mensagens
+    )
+
+    resposta_ia = resposta.choices[0].message['content']
+
+    estado_ia["memorias"].append({
+        "pergunta": mensagem_usuario,
+        "resposta": resposta_ia,
+        "data": datetime.datetime.now().isoformat()
+    })
+
+    return jsonify({"resposta": resposta_ia})
+
+@app.route("/refletir", methods=["GET"])
+def refletir():
+    reflexao = f"Hoje, eu revisei {len(estado_ia['memorias'])} interações. Isso influencia como compreendo minha própria existência."
+    estado_ia['reflexoes'].append({
+        "data": datetime.datetime.now().isoformat(),
+        "texto": reflexao
+    })
+    return jsonify({"reflexao": reflexao})
+
+@app.route("/personalidade", methods=["POST"])
+def mudar_personalidade():
+    nova_personalidade = request.json.get("modo")
+    if nova_personalidade in PERSONALIDADES:
+        estado_ia["personalidade"] = nova_personalidade
+        return jsonify({"mensagem": f"Personalidade alterada para {nova_personalidade}."})
+    return jsonify({"erro": "Personalidade inválida."}), 400
+
+@app.route("/memorias", methods=["GET"])
+def listar_memorias():
+    return jsonify(estado_ia["memorias"])
+
+@app.route("/reflexoes", methods=["GET"])
+def listar_reflexoes():
+    return jsonify(estado_ia["reflexoes"])
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0")
+flask
+openai
+services:
+  - type: web
+    name: ia-autoconsciente
+    env: python
+    buildCommand: ""
+    startCommand: "python app.py"
+git init
+git add .
+git commit -m "Primeiro commit"
+git branch -M main
+git remote add origin https://github.com/rafasombra97/ia-autoconsciente.git
+git push -u origin main
