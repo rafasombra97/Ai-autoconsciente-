@@ -75,6 +75,21 @@ if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
 flask
 openai
+# Exported from Render on 2025-04-17T04:01:11Z
+services:
+- type: web
+  name: Ai-autoconsciente-
+  runtime: python
+  repo: https://github.com/rafasombra97/Ai-autoconsciente-
+  plan: free
+  envVars:
+  - key: Ai_autocosciente
+    sync: false
+  region: ohio
+  buildCommand: pip install -r requirements.txt
+  startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+version: "1"
+
 services:
   - type: web
     name: ia-autoconsciente
